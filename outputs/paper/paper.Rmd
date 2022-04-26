@@ -1,0 +1,167 @@
+---
+title: "Domestic Violence's Injuries to Women in Pakistan"
+author: 
+  - Bu Xu
+thanks: "Code and data are available at: git@github.com:Bulilian/domestic-violence-research.git"
+date: "`r format(Sys.time(), '%d %B %Y')`"
+abstract: "Domestic violence is defined as abusive behaviors committed by an individual in a domestic setting, also known as intimate partner violence. Although men can be victims of domestic violence, most who suffer from it are women. By international research, the most common form is harm from women's spouses. Thus, we must investigate more on it. This article mainly focuses on females ranging from 15 to 49 years old. We want to find a relationship between the percentage of women who experienced domestic violence by their husbands and age, region, residence, and many other factors."
+output:
+  bookdown::pdf_document2
+toc: FALSE
+bibliography: references.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+library(tidyverse)
+library(ggpubr)
+```
+
+```{r readin, include=FALSE}
+commit_person <- read.csv(file = '../commit_person')
+afraid <- read.csv(file = '../afraid')
+age <- read.csv(file = '../age')
+age_diff <- read.csv(file = '../age_diff')
+alcohol_hus <- read.csv(file = '../alcohol_hus')
+edu_diff <- read.csv(file = '../edu_diff')
+edu_hus <- read.csv(file = '../edu_hus')
+edu_wom <- read.csv(file = '../edu_wom')
+marriage_dur <- read.csv(file = '../exp_duration')
+father_beat <- read.csv(file = '../father_beat')
+form_spousal_vio <- read.csv(file = '../form_spousal_vio')
+marry <- read.csv(file = '../marry')
+number_childliving <- read.csv(file = '../number_childliving')
+regions_wom <- read.csv(file = '../regions_wom')
+residence <- read.csv(file = '../resid')
+```
+
+# Introduction
+
+Many women worldwide are suffering from domestic violence. Their spouses are often the ones who did it. The phenomenon happens regardless of countries, cultures, ages, and even races. It has various forms, including physical, emotional, economic, and sexual abuse. In 2012 Demographic and Health Survey of Pakistan first started to collect data on domestic violence. Many cases are not reported by the victims. They are afraid of being found to report the violence, which will lead to more severe violence.
+
+There are some historical problems with gender inequality in Pakistan. According to Sabir (ref), in 2012 and 2013, among the population in Pakistan, 53 percent of people aged 15 and above participate in economical and social work. However, only 25 percent of the women's population is economically active, which indicates that they are less employed and thus concentrate more on their families. The inequality in the working situation of men and women could further deepen the happening of domestic violence. Furthermore, collecting these data requires much effort since women will keep silent when they are asked to answer questions about their domestic life in some countries. We need to protect the women who participate in the survey and preserve the data to be accurate at the same time. Thus, the validity and reliability of the sample are two main problems we have to resolve in our study.
+
+We will discuss spousal violence in this paper. It is defined as women who are especially enduring physical, emotional, and other forms of violence committed by their husbands or ex-husbands. The data contains information from ever-married women who are abused in many aspects. We are curious about what factors affect the percentage of women who experience domestic violence. Age, living district, region, marital status, number of living children, employment, and education are all considered to affect the percentage of women's experience of violence. From the research, we find that younger women are more likely to be reported bearing domestic violence from their spouses. Hence, we must conclude what factors influence the percentage so that related policies can be posted afterward.
+
+Section \@ref(data) demonstrates the data gathered from Pakistan Demographic and Health Survey dataset in 2012-2013 about females' domestic violence experience. Section \@ref(methodology) uses a mixed linear model to conclude the relationship between the percentage of women experiencing violence from their husbands and some characteristics of their husbands. Section \@ref(results) interprets what the statistics in the former part mean and states what are the common characteristics husband or former husband has. Section \@ref(discussion) will reveal people’s attitudes toward spousal violence in Pakistan,  relevant measures we can do to protect them from such violence and the limitation of this study.
+
+
+
+
+# Data
+
+
+
+```{r commit, fig.cap="Persons who committing violence physically", echo = FALSE}
+# persons who commits the violence to the ever-married women
+ggplot(commit_person, aes(x = person, y = percentage)) +
+  geom_bar(stat="identity", position="dodge", width= 0.7, alpha = 0.8, fill = "steelblue") +
+  theme_minimal() +
+  xlab("person") + 
+  ylab("percentage of ever-married women") + 
+  coord_flip()
+```
+
+
+```{r resid, echo=FALSE}
+# population of women living in rural and urban areas
+kable(residence, caption = 'Residence of Women')
+```
+
+
+```{r age, fig.cap="Age group distribution", echo = FALSE, fig.width=8, fig.height=4}
+# age group distribution of women
+ggplot(age, aes(x = age, y = population)) +
+  geom_bar(stat="identity", position="dodge", width= 0.7, alpha = 0.8, fill = "steelblue") +
+  theme_minimal() +
+  xlab("age group") + 
+  ylab("population")
+```
+
+```{r emovsphy, fig.cap="Age group distribution", echo = FALSE, fig.width=8, fig.height=4}
+# age group distribution of women
+emo_age <-  ggplot(age, aes(x = age, y = emo_vio, group = 1)) +
+  geom_path(color = 'steelblue2') +
+  geom_point() +
+  theme_minimal() +
+  xlab("age group") + 
+  ylab("population")
+
+phy_age <-  ggplot(age, aes(x = age, y = phy_vio, group = 2)) +
+  geom_path(color = 'steelblue4') +
+  geom_point() +
+  theme_minimal() +
+  xlab("age group") + 
+  ylab("population")
+
+ggarrange(emo_age,phy_age, 
+          nrow = 1, ncol = 2)
+```
+
+```{r agediff, echo=FALSE, fig.caption='Percentage of women experiencing both emotional and physical violence in groups of spousal age difference'}
+# age difference of husbands and wifes
+ggplot(age_diff, aes(x = "", y = num_of_wom, fill = age_difference)) +
+  geom_col(color = "black") +
+  geom_text(aes(label = both),
+            position = position_stack(vjust = 0.5)) +
+  scale_fill_brewer() +
+  theme_void()
+```
+
+
+| Right | Left | Default | Center |
+|------:|:-----|---------|:------:|
+|   12  |  12  |    12   |    12  |
+|  123  |  123 |   123   |   123  |
+|    1  |    1 |     1   |     1  |
+
+
+```{r alcohol, echo=FALSE, tab.cap='Physical violence percentage of women who have experienced considering their husbands' alcohol consumption'}
+alcohol <- alcohol_hus %>% 
+  select(alcohol_consum, phy_vio)
+kable(alcohol, col.names = c('alcohol consumption', 'physical violence(%)'))
+```
+
+
+```{r}
+# education background difference between husband and wife
+
+```
+
+
+# Methodology
+
+
+
+
+# Results
+
+# Discussion
+
+## First discussion point
+
+
+
+## Second discussion point
+
+## Third discussion point
+
+## Weaknesses and next steps
+
+\newpage
+
+\appendix
+
+# Appendix {-}
+
+
+# Additional details
+
+
+\newpage
+
+
+# References
+
+
