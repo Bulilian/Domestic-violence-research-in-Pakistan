@@ -4,7 +4,8 @@ author:
   - Bu Xu
 thanks: "Code and data are available at: git@github.com:Bulilian/domestic-violence-research.git"
 date: "`r format(Sys.time(), '%d %B %Y')`"
-abstract: "Domestic violence is defined as abusive behaviors committed by an individual in a domestic setting, also known as intimate partner violence. Although men can be victims of domestic violence, most who suffer from it are women. By international research, the most common form is harm from women's spouses. Thus, we must investigate more on it. This article mainly focuses on females ranging from 15 to 49 years old. We want to find a relationship between the percentage of women who experienced domestic violence by their husbands and age, region, residence, and many other factors."
+abstract: "Domestic violence is defined as abusive behaviors committed by an individual in a domestic setting, also known as intimate partner violence. By international research, the most common form is harm from women's spouses. Thus, we must investigate more on it. This article mainly focuses on females ranging from 15 to 49 years old who suffered from violence in their families. We want to find a relationship between the percentage of women who experienced domestic violence by their husbands' characteristics. The result contributes to calling on people's attention to the domestic violence Pakistan women are experiencing."
+Keywords: "domestic violence, gender equality, women protection"
 output:
   bookdown::pdf_document2
 toc: FALSE
@@ -16,6 +17,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(knitr)
 library(tidyverse)
 library(ggpubr)
+library(lme4)
 ```
 
 ```{r readin, include=FALSE}
@@ -38,20 +40,55 @@ residence <- read.csv(file = '../resid')
 
 # Introduction
 
-Many women worldwide are suffering from domestic violence. Their spouses are often the ones who did it. The phenomenon happens regardless of countries, cultures, ages, and even races. It has various forms, including physical, emotional, economic, and sexual abuse. In 2012 Demographic and Health Survey of Pakistan first started to collect data on domestic violence. Many cases are not reported by the victims. They are afraid of being found to report the violence, which will lead to more severe violence.
+Many women worldwide are suffering from domestic violence. Their spouses are often the ones who did it. The phenomenon happens regardless of countries, cultures, ages, and even races. It has various forms, including physical, emotional, economic, and sexual abuse. In 2012 Demographic and Health Survey of Pakistan first started to collect data on domestic violence. The victims do not report many cases. They are afraid of being found to report the violence, which will lead to more severe violence.
 
-There are some historical problems with gender inequality in Pakistan. According to Sabir (ref), in 2012 and 2013, among the population in Pakistan, 53 percent of people aged 15 and above participate in economical and social work. However, only 25 percent of the women's population is economically active, which indicates that they are less employed and thus concentrate more on their families. The inequality in the working situation of men and women could further deepen the happening of domestic violence. Furthermore, collecting these data requires much effort since women will keep silent when they are asked to answer questions about their domestic life in some countries. We need to protect the women who participate in the survey and preserve the data to be accurate at the same time. Thus, the validity and reliability of the sample are two main problems we have to resolve in our study.
+There are some historical problems with gender inequality in Pakistan. According to Sabir (@gender), in 2012 and 2013, 53 percent of people aged 15 and above participated in economic and social work among the population in Pakistan. However, only 25 percent of the women's population is economically active, which indicates that they are less employed and thus concentrate more on their families. The inequality in the working situation of men and women could further deepen the happening of domestic violence. Furthermore, collecting these data requires much effort since women will keep silent when they are asked to answer questions about their domestic life in some countries. We need to protect the women who participate in the survey and preserve the data to be accurate at the same time. Thus, the validity and reliability of the sample are two main problems we have to resolve in our study.
 
-We will discuss spousal violence in this paper. It is defined as women who are especially enduring physical, emotional, and other forms of violence committed by their husbands or ex-husbands. The data contains information from ever-married women who are abused in many aspects. We are curious about what factors affect the percentage of women who experience domestic violence. Age, living district, region, marital status, number of living children, employment, and education are all considered to affect the percentage of women's experience of violence. From the research, we find that younger women are more likely to be reported bearing domestic violence from their spouses. Hence, we must conclude what factors influence the percentage so that related policies can be posted afterward.
+We will discuss spousal violence in this paper. It is defined as women who are especially enduring physical, emotional, and other forms of violence committed by their husbands or ex-husbands. The data contains information from ever-married women who are abused in many aspects. We are curious about what factors affect the percentage of women who experience domestic violence. Age, living district, region, marital status, number of living children, employment, and education all affect the percentage of women's experience violence. From the research, we find that younger women are more likely to be reported bearing domestic violence from their spouses. Hence, we must conclude what factors influence the percentage so that related policies can be posted afterward.
 
-Section \@ref(data) demonstrates the data gathered from Pakistan Demographic and Health Survey dataset in 2012-2013 about females' domestic violence experience. Section \@ref(methodology) uses a mixed linear model to conclude the relationship between the percentage of women experiencing violence from their husbands and some characteristics of their husbands. Section \@ref(results) interprets what the statistics in the former part mean and states what are the common characteristics husband or former husband has. Section \@ref(discussion) will reveal people’s attitudes toward spousal violence in Pakistan,  relevant measures we can do to protect them from such violence and the limitation of this study.
-
+Section \@ref(data) demonstrates the data gathered from the Pakistan Demographic and Health Survey dataset in 2012-2013 about females' domestic violence experience.Section \@ref(methodology) uses a mixed linear model to conclude the relationship between the percentage of women experiencing violence from their husbands and some characteristics of their husbands. Section \@ref(results) interprets what the former part's statistics mean and states the typical features of the husband or former husband. Section \@ref(discussion) will reveal people's attitudes toward spousal violence in Pakistan,  relevant measures we can take to protect them from such violence, and this study's limitations.
 
 
 
 # Data
 
+Based on the survey data provided by Pakistan Demographic and Health Survey from 2012 and 2013, the overall rate of ever-married women aged between 15 to 49 who have experienced domestic violence at all forms and types makes up 32 percent of the sample we collected in Pakistan. The report specifically chooses the time from 2012 to 2013 because during this period, for the first time a domestic violence module was introduced in the country. While only 608 cases were reported in 2009, the real situation is different. The problem remains under the tradition of keeping silence among the victims of domestic violence in Pakistan. 
 
+Types of domestic violence are not exclusive from each other. Multiple forms of violence could happen to one person at a time. During the 12-months of survey preceding time, the survey gathered data about husbands’ physical and psychological violence. In intimate relationships, the two types of violence occur one along with the other. Figure \@ref(fig:spousal1) and figure \@ref(fig:spousal2) show the forms of violence in both physical and emotional in the past 12 months of the survey conducting time and ever respectfully. In both pie charts, the behaviour of husbands insulting their spouse or making them feel bad about themselves topped among all kinds of forms. Another common behaviour is to say or do something to humiliate women in front of others. Both of the behaviours are considered as emotional violence. 
+
+```{r spousal1, echo=FALSE, fig.caption='Forms of spousal violence during the last 12 months', warning=FALSE}
+# forms of spousal violence during the last 12 months
+form_spousal_vio1 <- form_spousal_vio %>% 
+  mutate(`past 12 months` = percent_last12, ever= percent_ever) %>% 
+  select(forms, `past 12 months`, ever)
+
+form_spousal_last12 <- form_spousal_vio1 %>% 
+  select(forms, `past 12 months`)
+
+ggplot(form_spousal_last12, aes(x = "", y = `past 12 months`, fill = forms)) +
+  geom_col(color = "black") +
+  geom_text(aes(label = `past 12 months`),
+            position = position_stack(vjust = 0.5)) +
+  scale_fill_brewer() +
+  coord_polar(theta = "y", start=0) +
+  theme_void()
+```
+
+```{r spousal2, echo=FALSE, fig.cap='Forms of spousal violence ever', warning=FALSE}
+# forms of spousal violence ever
+form_spousal_ever <- form_spousal_vio1 %>% 
+  select(forms, ever)
+
+ggplot(form_spousal_ever, aes(x = "", y = ever, fill = forms)) +
+  geom_col(color = "black") +
+  geom_text(aes(label = ever),
+            position = position_stack(vjust = 0.5)) +
+  scale_fill_brewer() +
+  coord_polar(theta = "y", start=0) +
+  theme_void()
+```
+
+The person who committed the violence can vary. From figure \@ref(fig:commit), we can tell that the most common possibility of a domestic violence oppressor is a woman's current husband. The percentage is 79.4, taking up nearly four fifths of the whole sample. Following it is victims’ mothers or stepmothers. However, it only consists of 11.9 percent of the ever-married women, which is far away from the value of current husbands. Thus, it is necessary to investigate what characteristics of women and their husbands are more likely to have such an experience. 
 
 ```{r commit, fig.cap="Persons who committing violence physically", echo = FALSE}
 # persons who commits the violence to the ever-married women
@@ -63,12 +100,14 @@ ggplot(commit_person, aes(x = person, y = percentage)) +
   coord_flip()
 ```
 
+Table \@ref(tab:resid) demonstrates the distribution of the residence of women. Women who are more likely to suffer violence from their intimate relationships are those who live in rural areas. Only 1216 of the samples are people who live in urban areas. 
 
 ```{r resid, echo=FALSE}
 # population of women living in rural and urban areas
 kable(residence, caption = 'Residence of Women')
 ```
 
+Another consideration is women’s age. Figure \@ref(fig:age) illustrates 4 age groups of women: 15 to 19, 20 to 24, 25 to 29, 30 to 39 and 40 to 49. Although the category is not uniform, by adding values under the age group of 20 to 24 to age group 25 to 29, we can tell that younger women account for a larger part of the victims of domestic violence. As for figure 4, it shows the difference between emotional violence and physical violence in distinct age groups. Figure \@ref(fig:agediff) reveals husbands and wives’ age differences. Husbands are normally 1-4 years or 5-9 years older than their wives. 
 
 ```{r age, fig.cap="Age group distribution", echo = FALSE, fig.width=8, fig.height=4}
 # age group distribution of women
@@ -99,69 +138,122 @@ ggarrange(emo_age,phy_age,
           nrow = 1, ncol = 2)
 ```
 
-```{r agediff, echo=FALSE, fig.caption='Percentage of women experiencing both emotional and physical violence in groups of spousal age difference'}
-# age difference of husbands and wifes
+```{r agediff, echo=FALSE, fig.caption='Percentage of population by age difference', warning=FALSE}
+# age difference of husbands and wives
 ggplot(age_diff, aes(x = "", y = num_of_wom, fill = age_difference)) +
   geom_col(color = "black") +
   geom_text(aes(label = both),
             position = position_stack(vjust = 0.5)) +
   scale_fill_brewer() +
-  theme_void()
+  theme_minimal()
 ```
 
+Additionally, research(@alcohol) shows that domestic violence is always linked with alcohol usage. The values in table \@ref(tab:alcohol) also fit with the conclusion. With husbands get drunk very often the percentage of women who face physical violence rises from 24.8 to 71.1 when compared with men who do not drink. 
 
-| Right | Left | Default | Center |
-|------:|:-----|---------|:------:|
-|   12  |  12  |    12   |    12  |
-|  123  |  123 |   123   |   123  |
-|    1  |    1 |     1   |     1  |
-
-
-```{r alcohol, echo=FALSE, tab.cap='Physical violence percentage of women who have experienced considering their husbands' alcohol consumption'}
+```{r alcohol, echo=FALSE}
 alcohol <- alcohol_hus %>% 
   select(alcohol_consum, phy_vio)
-kable(alcohol, col.names = c('alcohol consumption', 'physical violence(%)'))
+kable(alcohol, col.names = c('alcohol consumption', 'physical violence(%)'), 
+      caption = 'Physical violence percentage of women who have experienced considering alcohol consumption of husbands')
 ```
 
+Education background difference also matters. Table \@ref(tab:edudiff) illustrates that except for the condition that both wife and husband are neither educated, the higher the education they obtain, the lower the rate of domestic violence. 
 
-```{r}
+```{r edudiff, echo=FALSE}
 # education background difference between husband and wife
+edu_diff <- edu_diff %>% 
+  select(education_diff, num_of_wom, both) 
+kable(edu_diff, col.names = c('education differences', 'number of women suffer', 
+                              'physical and emotional violence'), 
+      caption = 'Education differences between husband and wife')
+``` 
 
+```{r womedu, echo=FALSE}
+# wives' education background
+edu_wom <- edu_wom %>% 
+  select(education, population)
+kable(edu_wom, caption = 'Education background of women')
 ```
 
+```{r husedu, echo=FALSE}
+# husbands' education background
+edu_hus <- edu_hus %>% 
+  select(education, numb_of_wom)
+kable(edu_hus, col.names = c('education', 'population'), caption = 'Education background of husbands(including current and former)')
+```
+
+Table \@ref(tab:duration) shows the relationship between marriage length and physical violence. The longer the marriage, the more likely women will experience physical violence. Table \@ref(tab:childliving) discusses the number of the couple’s living children and the percentage of emotional violence. They are positively related. 
+
+```{r duration, echo=FALSE}
+# women experiencing violence by marriage duration
+kable(marriage_dur, col.names = c('duration of marriage',
+                                  'not experienced physical violence(%)'
+                                  ,'population'), 
+      caption = 'Women\'s experience of spousal violence by marriage duration')
+```
+
+```{r childliving, echo=FALSE, warning=FALSE}
+number_childliving1 <- number_childliving %>% 
+  select(number, emo_vio)
+kable(number_childliving1, col.names = c('number of living children', 'percentage of emotional violence(%)'), 
+      caption = 'Children living vs emotional violence')
+```
 
 # Methodology
 
+```{r eval=FALSE, include=FALSE}
+model1 <- lm(num_ever_married_once ~ percent_no_vio, data = marriage_dur)
+summary(model1)
+```
 
+
+```{r eval=FALSE, include=FALSE}
+model2 <- lm(population ~ emo_vio + phy_vio, data = number_childliving)
+summary(model2)
+```
+
+```{r eval=FALSE, include=FALSE}
+model3 <- lm(population ~ seek_help + never_seek_but_told + never_seek_nor_told, data = regions_wom)
+summary(model3)
+```
+After careful consideration, I decided to investigate further the relationship between the population of victims and factors like the number of currently living children in the family, etc. Thus, a simple linear model is generated to try to figure out the inner relationships. First, the table consists of the data about couples' marriage duration and the percentage of women who have not experienced violence in their marriage. From the model, we can hardly see that there exists a linear relationship between these two variables. The p-value is relatively higher than 0.05. Hence, we fail to reject the null hypothesis that there is no relationship between the population and the no-violence percentage. Since the adjusted R square value is 0.27, the first hypothesis does not fit well, and we can not conclude any proper result for this model. 
+
+Then we focus on the women's population's relation to emotional and physical violence that their spouses conduct. With p-values all greater than 0.05, the deviation from the null hypothesis is not statistically significant. Thus, the null hypothesis is not rejected. However, it does not mean we can accept it. By observation, the adjusted R-squared is 0.68, which represents how well the model fitted the actual values. 68% is acceptable. In conclusion, that is to say, under the condition that each family has a different number of living children, the population of women who are suffering from domestic violence physically and psychologically is influenced by the number of living children. 
+
+$population$ = $\beta_{0}$ + $\beta_{1}$ $number$ $of$ $chilren$ $living$ + $\beta_{2}$ $marriage$ $duration$ + $\epsilon_{0}$
 
 
 # Results
 
+The reference group of the survey conducted in 2012 and 2013 in Pakistan is an ever-married females aged 15 to 49, with the nationality of Pakistan. Since the model only considers two predictors, the result is not general. With more living children, the percentage of suffering emotional and physical domestic violence from husbands is higher. Combining the result of the tables and figures illustrated in section \@ref(data), we can tell that younger women with no education or lower education background share a higher possibility of being treated violently in domestic life. The difference in educational background between husbands and wives is a relative concept. Conclusion: there is no guarantee that a couple with a college degree or higher will show less tendency to violence. With the same education and other characteristics, the alcohol consumption of a husband could influence the percentage of women suffering(@alcohol). They could use alcohol to expose trauma. 
+
 # Discussion
 
-## First discussion point
+## People’s attitude towards spousal violence in Pakistan
 
+A non-profitable organization in Pakistan fighting for women's rights has recorded around 10000 cases of violent behaviors whose targets are females(@attitude). It is also known as violence against women(VAW). Pakistan is an Islamic country, and it is made up of four provinces(Punja, Baluchistan, Sindh, and Khyber Pakhtunkhwa). There is a historical problem with the topic of gender equality. Women's education and employment have been a question waiting to resolve in Pakistan. The community consists of women who live in rural areas with low-income. They have fewer opportunities to access schools or the labor market and be aware of what domestic violence is and how to use tools to protect themselves. 
 
+For a long time, gender equity has remained a problem in Pakistan; most males consider women to be an object that belongs to them and shows little respect for their wives. The standard cognition is that women should do all the housework. Based on the fact that many women are unemployed, they are not independent of expenses. Thus, their domestic status is lower than the males who dominate the family finance. 
 
-## Second discussion point
+## How to protect women from such violence 
 
-## Third discussion point
+Usually, women's welfare and domestic violence prevention are allocated to separate agencies. Thus, we need an organization that assembles all the functionalities. While the collaboration of organizations is not a brand-new concept, the real-life situation differs. Efforts such as putting responsible persons to take charge of listening to women's requests when they are facing violence. We can put up posters to raise women's consciousness about the violence they are victims of and are under the protection of laws. It is a method of protecting women who have jobs. For those who are unemployed, the first thing is to help them find a job to feed themselves and not rely on their husbands. 
 
-## Weaknesses and next steps
+## Limitations
 
-\newpage
-
-\appendix
-
-# Appendix {-}
-
-
-# Additional details
+There still exist some limitations of the study. In the report, we do not include women's and man's employment. It could also be a significant factor that affects the percentage of women that experienced domestic violence both physically and emotionally. In addition, there are some missing values in the original dataset accessed from Pakistan Demographic and Health Survey 2012-13. In the data cleaning process, all the NA values are removed. The missing ones could lead to biased results and loss of information. However, it is evitable. The only thing we can do is to remark on it. Because many women are afraid of their husbands, some might keep silent when asked about their family sphere, which also consists of biases. For further study, we might consider collecting samples from several years and gathering them together to have a complete view of the factors that influence the population of women experiencing domestic violence. 
 
 
 \newpage
 
 
 # References
-
+@citeR
+@thereferencecanbewhatever
+@citeLahman
+@report
+@gender
+@alcohol
+@attitude
+@gender2
 
