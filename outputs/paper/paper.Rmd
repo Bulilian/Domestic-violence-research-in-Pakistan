@@ -1,5 +1,5 @@
 ---
-title: "Domestic Violence's Injuries to Women in Pakistan"
+title: "Domestic Violence's Injuries to Women in Pakistan and Resolving Solutions"
 author: 
   - Bu Xu
 thanks: "Code and data are available at: git@github.com:Bulilian/domestic-violence-research.git"
